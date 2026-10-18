@@ -68,7 +68,6 @@ nav button.on{color:var(--red);box-shadow:inset 0 3px 0 var(--red)}
 <script>
 var C=window.APP_CONFIG||{},tab="card",PHONE="",TOKEN="",SV=[],RW=[],PR=[],ME=null,AD=null,sel={svc:0,date:"",time:""},TAKEN=[],MSG="",OK="",AERR=[],CLEAR=[],BUSY=false,TT=0;
 var HOURS=["10:00","11:00","12:00","13:00","14:00","15:00","16:00","17:00"];
-var CLOSED=[];
 try{PHONE=localStorage.getItem("jb-phone")||""}catch(e){}
 function $(i){return document.getElementById(i)}
 function esc(t){return String(t==null?"":t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]})}
@@ -92,9 +91,8 @@ function target(p){for(var i=0;i<RW.length;i++)if(RW[i].points>p)return RW[i];re
 function go(t){tab=t;MSG="";OK="";render()}
 async function load(){
  var a=await Promise.all([sb("/rest/v1/services?select=*&order=id"),sb("/rest/v1/rewards?select=*&order=points"),
-  sb("/rest/v1/promotions?select=id,title,body,bonus_points,multiplier,requires_code&active=eq.true&order=id.desc"),
-  sb("/rest/v1/closed_days?select=day&day=gte."+today()+"&order=day")]);
- SV=a[0];RW=a[1];PR=a[2];CLOSED=(a[3]||[]).map(function(d){return d.day});
+  sb("/rest/v1/promotions?select=id,title,body,bonus_points,multiplier,requires_code&active=eq.true&order=id.desc")]);
+ SV=a[0];RW=a[1];PR=a[2];
  if(PHONE&&!ME){try{ME=await rpc("client_me",{p_phone:PHONE})}catch(e){setPhone("")}}
  if(tab==="book"&&sel.date){TAKEN=await rpc("taken_slots",{p_date:sel.date})||[]}
  if(tab==="own"&&TOKEN)AD=await loadAdmin()}
@@ -155,17 +153,14 @@ async function redeem(id){try{var d=await rpc("redeem_reward",{p_phone:PHONE,p_r
 
 function vBook(){
  if(!ME)return '<div class="card"><h2>Primero crea tu tarjeta</h2><p>Así guardamos tu cita y tus puntos.</p><button class="full" onclick="go(\'card\')">Crear mi tarjeta</button></div>';
- var closedNow=sel.date&&CLOSED.indexOf(sel.date)>-1;
  var h='<div class="card"><h2>Agenda tu cita</h2><label for="sv">Servicio</label><select id="sv" onchange="sel.svc=+this.value"><option value="">Elige un servicio</option>';
  SV.forEach(function(s){h+='<option value="'+s.id+'"'+(sel.svc===s.id?" selected":"")+'>'+esc(s.name)+' · $'+s.price+' · +'+s.points+' pts</option>'});
  h+='</select><label for="dt">Día</label><input id="dt" type="date" min="'+today()+'" value="'+sel.date+'" onchange="sel.date=this.value;sel.time=\'\';render()"><label>Hora</label><div class="slots">';
  if(!sel.date)h+='<p class="note" style="grid-column:1/-1">Elige un día para ver los horarios libres.</p>';
- else if(closedNow)h+='<p class="note" style="grid-column:1/-1">Ese día la barbería está cerrada. Elige otro día.</p>';
  else HOURS.forEach(function(t){var off=TAKEN.indexOf(t)>-1;h+='<button class="slot'+(sel.time===t?" sel":"")+'" '+(off?"disabled":"")+' onclick="sel.time=\''+t+'\';render()">'+t+'</button>'});
- return h+'</div>'+msgs()+'<button class="full" '+(closedNow?"disabled":"")+' onclick="book()">Confirmar cita</button></div>'}
+ return h+'</div>'+msgs()+'<button class="full" onclick="book()">Confirmar cita</button></div>'}
 function book(){act(async function(){
  if(!sel.svc||!sel.date||!sel.time)throw new Error("Elige servicio, día y hora.");
- if(CLOSED.indexOf(sel.date)>-1)throw new Error("Ese día la barbería está cerrada. Elige otro día.");
  await rpc("book_appointment",{p_phone:PHONE,p_service:sel.svc,p_date:sel.date,p_time:sel.time});
  sel={svc:0,date:"",time:""};TAKEN=[];ME=await rpc("client_me",{p_phone:PHONE});tab="card";OK="Cita confirmada. Te esperamos."})}
 
@@ -183,10 +178,6 @@ function vOwn(){
  h+='</div><div class="card"><h2>Promociones</h2>';
  AD.promos.forEach(function(p){h+='<div class="row"><div><strong>'+esc(p.title)+'</strong><small>'+(p.active?"Activa":"Pausada")+(p.bonus_points?" · +"+p.bonus_points+" pts":"")+(p.multiplier>1?" · ×"+p.multiplier:"")+(p.code?" · código "+esc(p.code):"")+'</small></div><div><button class="ghost" onclick="patch(\'promotions\','+p.id+',{active:'+(!p.active)+'})">'+(p.active?"Pausar":"Activar")+'</button> <button class="ghost" onclick="del(\'promotions\','+p.id+')">Quitar</button></div></div>'});
  h+='<label for="pt">Nueva promoción</label><input id="pt" placeholder="Título. Ej. Martes de puntos dobles"><textarea id="pb" rows="2" placeholder="Descripción para el cliente" style="margin-top:8px"></textarea><div class="two"><input id="pbp" type="number" placeholder="Puntos de regalo"><input id="pm" type="number" placeholder="Multiplicador (2 = doble)"></div><input id="pcd" placeholder="Código (opcional)" style="margin-top:8px"><button class="full" onclick="addPromo()">Crear promoción</button><p class="note">Puntos de regalo: cada cliente los reclama una vez. Multiplicador: suma más puntos al completar citas mientras la promo esté activa.</p></div>';
- h+='<div class="card"><h2>Días que no trabajas</h2>';
- if(!CLOSED.length)h+='<p class="note">No tienes días cerrados marcados.</p>';
- CLOSED.forEach(function(d){h+='<div class="row"><div><strong>'+d+'</strong></div><button class="ghost" onclick="openDay(\''+d+'\')">Reabrir</button></div>'});
- h+='<label for="cd">Agregar día cerrado</label><input id="cd" type="date" min="'+today()+'"><button class="full" onclick="closeDay()">Marcar como cerrado</button></div>';
  h+='<div class="card"><h2>Servicios</h2>';
  SV.forEach(function(s){h+='<div class="row"><div><strong>'+esc(s.name)+'</strong><small>$'+s.price+' · '+s.points+' puntos</small></div><button class="ghost" onclick="del(\'services\','+s.id+')">Quitar</button></div>'});
  h+='<label for="sn">Nuevo servicio</label><input id="sn" placeholder="Nombre"><div class="two"><input id="sp" type="number" placeholder="Precio"><input id="sq" type="number" placeholder="Puntos"></div><button class="full" onclick="addSvc()">Agregar servicio</button></div><div class="card"><h2>Recompensas</h2>';
@@ -213,8 +204,6 @@ function addSvc(){var n=$("sn").value.trim(),p=+$("sp").value,q=parseInt($("sq")
 function addRw(){var n=$("rn").value.trim(),p=parseInt($("rp").value,10);if(!n||!(p>0)){return warn("Completa nombre y puntos.")}ins("rewards",{name:n,points:p},"Recompensa agregada.",["rn","rp"])}
 function addPromo(){var t=$("pt").value.trim();if(!t){return warn("Escribe un título.")}
  var cd=$("pcd").value.trim();ins("promotions",{title:t,body:$("pb").value.trim()||null,bonus_points:parseInt($("pbp").value,10)||0,multiplier:Math.max(parseInt($("pm").value,10)||1,1),code:cd||null,requires_code:!!cd,active:true},"Promoción creada.",["pt","pb","pbp","pm","pcd"])}
-function closeDay(){var d=$("cd").value;if(!d){return warn("Elige una fecha.")}ins("closed_days",{day:d},"Día marcado como cerrado.",["cd"])}
-function openDay(d){act(function(){return sb("/rest/v1/closed_days?day=eq."+d,{method:"DELETE",prefer:"return=minimal"})},"Día reabierto.")}
 setInterval(function(){var t=((document.activeElement||{}).tagName||"");if(tab==="own"&&TOKEN&&AD&&!BUSY&&!/^(INPUT|TEXTAREA|SELECT)$/.test(t))render(true)},45000);
 render();
 </script>
