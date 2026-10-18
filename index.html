@@ -163,6 +163,20 @@ function vOwn(){
  AD.promos.forEach(function(p){h+='<div class="row"><div><strong>'+esc(p.title)+'</strong><small>'+(p.active?"Activa":"Pausada")+(p.bonus_points?" · +"+p.bonus_points+" pts":"")+(p.multiplier>1?" · ×"+p.multiplier:"")+(p.code?" · código "+esc(p.code):"")+'</small></div><div><button class="ghost" onclick="patch(\'promotions\','+p.id+',{active:'+(!p.active)+'})">'+(p.active?"Pausar":"Activar")+'</button> <button class="ghost" onclick="del(\'promotions\','+p.id+')">Quitar</button></div></div>'});
  h+='<label for="pt">Nueva promoción</label><input id="pt" placeholder="Título. Ej. Martes de puntos dobles"><textarea id="pb" rows="2" placeholder="Descripción para el cliente" style="margin-top:8px"></textarea><div class="two"><input id="pbp" type="number" placeholder="Puntos de regalo"><input id="pm" type="number" placeholder="Multiplicador (2 = doble)"></div><input id="pcd" placeholder="Código (opcional)" style="margin-top:8px"><button class="full" onclick="addPromo()">Crear promoción</button><p class="note">Puntos de regalo: cada cliente los reclama una vez. Multiplicador: suma más puntos al completar citas mientras la promo esté activa.</p></div>';
  h+='<div class="card"><h2>Servicios</h2>';
+
+<section id="calendario-no-laborable">
+
+  <h2>📅 Calendario de días no laborables</h2>
+
+  <p>Consulta los días en que la barbería no estará disponible.</p>
+
+  <label for="dia-no-laborable">Selecciona una fecha:</label>
+
+  <input type="date" id="dia-no-laborable">
+
+  <p id="mensaje-calendario">Próximamente podrás consultar los días no laborables.</p>
+
+</section>
  SV.forEach(function(s){h+='<div class="row"><div><strong>'+esc(s.name)+'</strong><small>$'+s.price+' · '+s.points+' puntos</small></div><button class="ghost" onclick="del(\'services\','+s.id+')">Quitar</button></div>'});
  h+='<label for="sn">Nuevo servicio</label><input id="sn" placeholder="Nombre"><div class="two"><input id="sp" type="number" placeholder="Precio"><input id="sq" type="number" placeholder="Puntos"></div><button class="full" onclick="addSvc()">Agregar servicio</button></div><div class="card"><h2>Recompensas</h2>';
  RW.forEach(function(r){h+='<div class="row"><div><strong>'+esc(r.name)+'</strong><small>'+r.points+' puntos</small></div><button class="ghost" onclick="del(\'rewards\','+r.id+')">Quitar</button></div>'});
