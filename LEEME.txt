@@ -1,0 +1,14 @@
+JUANCHO DELIBERY BARBER SHOP — actualización web
+
+Archivos:
+- index.html: página web actualizada con diseño negro/dorado y calendario de días no disponibles.
+- logo.svg: logo vectorial profesional negro/dorado.
+- blocked_dates.sql: crea la tabla necesaria para guardar días bloqueados en Supabase.
+
+IMPORTANTE:
+1. Conserva tu archivo config.js actual; no lo reemplaces. Debe seguir en la misma carpeta que index.html.
+2. Antes de subir, ejecuta blocked_dates.sql una sola vez en Supabase > SQL Editor.
+3. Sube index.html y logo.svg a GitHub reemplazando esos dos archivos.
+4. La web conserva los nombres de tablas y funciones que ya usaba tu página. No se han borrado datos existentes.
+
+Nota de seguridad: las políticas del SQL permiten modificar días bloqueados a usuarios autenticados. Si en tu proyecto existen cuentas autenticadas que no son de dueño, restringe INSERT/DELETE a tu función/rol administrador antes de producción.
