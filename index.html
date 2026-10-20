@@ -313,7 +313,7 @@ function login(){act(async function(){
  TOKEN=d.access_token;
  var ok=true;try{ok=await rpc("is_admin")}catch(e){}
  if(ok===false){TOKEN="";throw new Error("Entraste, pero este correo no tiene permiso de dueño.")}
- OK="Bienvenido."})}
+q OK="Bienvenido."})}
 function complete(id){act(async function(){var r=await rpc("complete_appointment",{p_id:id});AD=await loadAdmin();OK=r&&r.loyalty_completed?"¡Gracias por tu fidelidad! La tarjeta se completó y comenzó una nueva.":"Cita completada. Puntos sumados."})}
 function cancelAppointment(id){if(!confirm("¿Seguro que quieres cancelar esta cita?"))return;act(async function(){await rpc("cancel_appointment",{p_id:id});AD=await loadAdmin()},"Cita cancelada correctamente.")}
 function patch(t,id,b){act(function(){return sb("/rest/v1/"+t+"?id=eq."+id,{method:"PATCH",body:b,prefer:"return=minimal"})},"Guardado.")}
@@ -346,4 +346,9 @@ setInterval(function(){var t=((document.activeElement||{}).tagName||"");if(tab==
 render();
 </script>
 </body>
-</html>
+</html><meta name="description" content="Juancho Pro 23 · Cortes con estilo. Agenda tu cita y acumula puntos.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Juancho Pro 23">
+<meta property="og:description" content="Cortes con estilo. Agenda tu cita y acumula puntos para servicios gratis.">
+<meta property="og:image" content="https://juanchopro23.github.io/Juancho-barber/logo.png">
+<meta property="og:url" content="https://juanchopro23.github.io/Juancho-barber/">
